@@ -1,32 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
-  labels:
-    app: uwsgi-app
-  name: uwsgi-app
+  name: flask-app
   namespace: flask-celery
+  labels:
+    app: flask-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: uwsgi-app
-  strategy: {}
+      app: flask-app
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        app: uwsgi-app
+        app: flask-app
     spec:
       containers:
-      - image: arturosoucase/flask-celery-example-app
-        name: app
-        resources: {}
+      - name: flask
+        image: arturosoucase/flask-celery-example-app
+        ports:
+        - containerPort: 5000
+          name: http
         envFrom:
-          - secretRef:
-              name: app-secret
-          - secretRef:
-              name: db-secret
-          - secretRef:
-              name: rabbitmq-secret
-status: {}
+        - secretRef:
+            name: app-secret
+        - secretRef:
+            name: db-secret
+        - secretRef:
+            name: rabbitmq-secret
+        resources:
+          requests:
+            cpu: 300m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

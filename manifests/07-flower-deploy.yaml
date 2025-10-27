@@ -1,25 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
-  labels:
-    app: flower
   name: flower
   namespace: flask-celery
+  labels:
+    app: flower
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: flower
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: flower
     spec:
       containers:
-      - image: arturosoucase/flask-celery-example-flower
-        name: flower
-        resources: {}
-status: {}
+      - name: flower
+        image: arturosoucase/flask-celery-example-flower
+        ports:
+        - containerPort: 5555
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi

@@ -1,19 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
-  labels:
-    app: db
-  name: db
+  name: postgres
   namespace: flask-celery
+  labels:
+    app: postgres
 spec:
+  type: ClusterIP
   ports:
-  - name: db-port
-    port: 5432
-    protocol: TCP
+  - port: 5432
     targetPort: 5432
+    protocol: TCP
+    name: postgres
   selector:
     app: postgres
-  type: ClusterIP
-status:
-  loadBalancer: {}
