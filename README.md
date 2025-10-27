@@ -115,6 +115,146 @@ Visit http://localhost:8080/flower to see:
 
 ---
 
+## 🌸 Flower Dashboard - Complete Monitoring Guide
+
+### What is Flower Dashboard?
+
+Flower is a **real-time monitoring dashboard** for Celery workers. It provides complete visibility into your distributed task processing system.
+
+### Dashboard Features
+
+#### 1. **Overview Page** (http://localhost:8080/flower)
+```
+┌────────────────────────────────────────────────┐
+│  Flower Dashboard - Celery Monitoring            │
+├────────────────────────────────────────────────┤
+│                                                 │
+│  📊 Summary Statistics                          │
+│  ├─ Active Workers: 3                          │
+│  ├─ Tasks (total): 47                          │
+│  ├─ Success: 45                                │
+│  ├─ Pending: 2                                 │
+│  └─ Failed: 0                                  │
+│                                                 │
+│  ⚙️  Worker Status                              │
+│  ├─ celery-worker-xxx: Online (500m CPU)       │
+│  ├─ celery-worker-yyy: Online (750m CPU)      │
+│  └─ celery-worker-zzz: Online (300m CPU)       │
+│                                                 │
+└────────────────────────────────────────────────┘
+```
+
+#### 2. **Workers Tab**
+- **Real-time worker status**: See which workers are active
+- **Worker details**: 
+  - CPU and memory usage
+  - Task completion rate
+  - Worker pool size
+  - Start time and uptime
+- **Worker controls**: Shut down or restart workers
+
+#### 3. **Tasks Tab**
+View all tasks in the system:
+- **Task ID**: Unique identifier for each task
+- **Name**: `fib_job`
+- **Arguments**: The Fibonacci number being calculated
+- **State**: SUCCESS, PENDING, STARTED, FAILURE
+- **Time**: When task started/completed
+- **Duration**: How long task took to execute
+- **Result**: The calculated Fibonacci number
+
+Example task list:
+```
+ID          Task      State    Started    Duration  Result
+──────────  ────────  ───────  ─────────  ────────  ──────────
+abc-123     fib_job   SUCCESS  14:30:15    0.5s      5
+def-456     fib_job   SUCCESS  14:30:42    2.3s      6765
+ghi-789     fib_job   SUCCESS  14:31:10    18.7s     832040
+jkl-012     fib_job   PENDING  14:32:00    -         -
+```
+
+#### 4. **Broker Tab**
+- **RabbitMQ Connection**: See if RabbitMQ is connected
+- **Broker stats**: Messages queued, delivered, acked
+- **Exchange information**
+
+#### 5. **Monitor Tab**
+Graphs and metrics:
+- **Task rate**: Tasks per second
+- **Worker load**: CPU usage over time
+- **Task duration**: Average execution time
+- **Queue depth**: Number of pending tasks
+
+### How to Read the Dashboard
+
+**When you're testing:**
+
+1. **Submit a task** (n=30) from Flask API
+2. **Watch in Flower:**
+   - Task appears in "Tasks" tab with state **PENDING**
+   - Soon changes to **STARTED** (worker picked it up)
+   - Worker CPU usage spikes (see in Workers tab)
+   - Task completes, state becomes **SUCCESS**
+   - Result shows the Fibonacci number
+
+3. **Try multiple tasks:**
+   - Submit n=25, n=26, n=27, n=28
+   - Watch all tasks queue up
+   - See multiple workers pick them up in parallel
+   - Notice different completion times based on number
+
+### Real-Time Monitoring Example
+
+```
+Timeline of processing n=30:
+
+14:32:00 [PENDING]  Task queued in RabbitMQ
+14:32:00 [STARTED] Worker celery-worker-54b8 picked up task
+14:32:02 [WORKING] Worker calculates fib(30)
+                    ├─ Calculates fib(29) + fib(28)
+                    ├─ Calculates fib(28) + fib(27)
+                    ├─ ... (recursive calls)
+14:32:18 [SUCCESS] Task completed in 18.2s
+                    Result: 832040
+```
+
+### Dashboard Colors & Status
+
+- **🟢 Green**: Worker online, task succeeded
+- **🟡 Yellow**: Task pending in queue
+- **🔵 Blue**: Task started, currently processing
+- **🔴 Red**: Task failed, worker offline
+- **⚪ White**: No activity
+
+### Useful Dashboard Metrics
+
+**For the Fibonacci Demo:**
+
+1. **Queue Depth**: How many tasks are waiting
+   - Empty = all workers busy or idle
+   - High = heavy load, may need more workers
+
+2. **Worker Load**: CPU usage per worker
+   - Low (< 50%) = CPU not fully utilized
+   - High (> 80%) = workers are working hard
+   - HPA will scale up if consistently > 70%
+
+3. **Task Duration**: How long tasks take
+   - n=5: ~0.1s
+   - n=20: ~2s
+   - n=30: ~20s
+   - n=35: Minutes (tests autoscaling)
+
+### Tips for Using Flower
+
+1. **Keep it open** while testing to see real-time processing
+2. **Try large numbers** to see workers scale up automatically
+3. **Check the Monitor tab** for performance graphs
+4. **Use the Tasks search** to find specific tasks
+5. **Watch worker load** to understand resource usage
+
+---
+
 ## 🧹 Cleanup
 
 When you're done testing:
