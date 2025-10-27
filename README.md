@@ -1,5 +1,7 @@
 # Cloud Computing Project: Flask + Celery + RabbitMQ + PostgreSQL + Flower on Kubernetes
 
+> **Quick Start**: Want to run the Fibonacci demo right now? Scroll down to [🚀 Quick Start Guide](#quick-start-guide)!
+
 ## Project Overview
 
 This project demonstrates a production-ready microservices architecture on Kubernetes with asynchronous task processing. The workflow models a realistic data-processing pipeline composed of five interacting services:
@@ -18,6 +20,108 @@ This project demonstrates a production-ready microservices architecture on Kuber
 
 **Instructor**: Dr. Il-Yeng Kim  
 **Course**: CS 6343 – Cloud Computing
+
+---
+
+## 🚀 Quick Start Guide - Running the Fibonacci Demo
+
+### Prerequisites (5 minutes setup)
+
+1. **Docker Desktop** installed and running
+2. **Enable Kubernetes** in Docker Desktop:
+   - Open Docker Desktop → Settings (gear icon) → Kubernetes → Enable
+   - Click "Apply & Restart"
+   - Wait 2-3 minutes for setup
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/ak55m/cloud-computing-project-Fall-2025.git
+cd cloud-computing-project-Fall-2025
+```
+
+### Step 2: Install Ingress Controller
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+```
+
+Wait for it to be ready:
+```bash
+kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=120s
+```
+
+### Step 3: Deploy the Application
+
+```bash
+./deploy.sh
+```
+
+This will:
+- Create the namespace
+- Deploy all services (Flask, Celery, RabbitMQ, PostgreSQL, Flower)
+- Set up persistent storage
+- Configure autoscaling
+- Wait for all pods to be ready
+
+### Step 4: Access the Fibonacci Calculator
+
+**Port forward the ingress:**
+```bash
+INGRESS_SVC=$(kubectl get svc -n ingress-nginx -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward -n ingress-nginx svc/$INGRESS_SVC 8080:80
+```
+
+**Open in your browser:**
+- **Flask API**: http://localhost:8080/api
+- **Flower Dashboard**: http://localhost:8080/flower
+
+### Step 5: Test the Fibonacci Calculator
+
+1. Go to http://localhost:8080/api
+2. Enter a number in the text box (try **5** to start)
+3. Click "Submit"
+4. Watch the calculation happen!
+
+**Try different numbers:**
+- **n=5** → Instant result ⚡
+- **n=20** → Takes ~2 seconds
+- **n=30** → Takes ~20 seconds
+- **n=35** → Takes several minutes (demonstrates autoscaling)
+
+**Tip**: Open the Flower dashboard in another tab to watch workers process tasks in real-time!
+
+---
+
+## 📊 What You'll See
+
+### When you submit a Fibonacci number:
+
+1. **Flask API** receives your request instantly
+2. Task is queued in **RabbitMQ**
+3. Available **Celery Worker** picks up the task
+4. Worker calculates Fibonacci (intentionally inefficient algorithm)
+5. Result is stored in **PostgreSQL**
+6. You see the result in the Flask UI
+
+### Monitoring in Flower:
+
+Visit http://localhost:8080/flower to see:
+- Active workers and their status
+- Task queue depth
+- Completed tasks
+- Failed tasks
+- Worker statistics
+
+---
+
+## 🧹 Cleanup
+
+When you're done testing:
+
+```bash
+kubectl delete namespace flask-celery
+```
 
 ---
 
