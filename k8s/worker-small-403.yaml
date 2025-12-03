@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-small-403
+  namespace: flask-celery
+  labels:
+    app: worker-small-403
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-small-403
+  template:
+    metadata:
+      labels:
+        app: worker-small-403
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: csa-6343-403.utdallas.edu
+      containers:
+      - name: celery-worker
+        image: your-dockerhub-username/worker:latest
+        command: ["celery"]
+        args:
+          - "-A"
+          - "worker"
+          - "worker"
+          - "--loglevel=info"
+          - "-Q"
+          - "fib_low"
+          - "--hostname=celery@small-403"
+        env:
+        - name: CELERY_BROKER_URL
+          value: "amqp://guest:guest@rabbitmq:5672//"
+        - name: CELERY_RESULT_BACKEND
+          value: "db+postgresql://postgres:postgres@postgres:5432/postgres"
+      restartPolicy: Always
+

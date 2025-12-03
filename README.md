@@ -459,6 +459,46 @@ Access the application:
 
 ---
 
+## Dedicated Workers (VM 403)
+
+This project includes dedicated Celery workers that are scheduled to run on a specific node (VM 403) and handle tasks from dedicated queues.
+
+### Deploying Dedicated Workers
+
+Deploy the dedicated workers to VM 403:
+
+```bash
+kubectl apply -f k8s/worker-small-403.yaml
+kubectl apply -f k8s/worker-large-403.yaml
+```
+
+These deployments create:
+- **worker-small-403**: Handles tasks from the `fib_low` queue
+- **worker-large-403**: Handles tasks from the `fib_high` queue
+
+Both workers are:
+- Scheduled on node `csa-6343-403.utdallas.edu` using node selectors
+- Configured with dedicated hostnames for identification
+- Connected to the same RabbitMQ broker and PostgreSQL database
+
+### Triggering Fibonacci Jobs via Celery
+
+To submit tasks to the dedicated workers, use the Celery API from your Python code:
+
+```python
+from tasks import fibonacci
+
+# Submit to low-priority queue (handled by worker-small-403)
+fibonacci.apply_async((10,), queue="fib_low")
+
+# Submit to high-priority queue (handled by worker-large-403)
+fibonacci.apply_async((35,), queue="fib_high")
+```
+
+The workers will process tasks from their respective queues and store results in PostgreSQL.
+
+---
+
 ## Resource Management
 
 ### Resource Limits & QoS Classes
