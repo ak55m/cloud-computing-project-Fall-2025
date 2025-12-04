@@ -1,5 +1,5 @@
-celery==5.2.2
+celery==4.4.7
 click==7.1.2
-Flask==2.3.2
+Flask==2.0.3
 pony==0.7.13
 psycopg2-binary==2.8.6
