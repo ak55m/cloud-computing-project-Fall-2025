@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-large
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-large
+  template:
+    metadata:
+      labels:
+        app: worker-large
+    spec:
+      containers:
+        - name: worker-large
+          image: YOUR_DOCKERHUB_USERNAME/worker:latest
+          command: ["celery", "-A", "flask_app.tasks", "worker", "-Q", "large", "-l", "info"]
+          env:
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-user
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "1Gi"
